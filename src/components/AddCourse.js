@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import axios from "../api/axios";
+import axios from "../api/axios"; // ✅ Use your custom Axios instance
 import { useNavigate } from "react-router-dom";
+import "../components/AddCourse.css"; // ✅ Import your CSS file for styling
+// (Optional) if you want custom styling
 
 const AddCourse = () => {
   const [title, setTitle] = useState("");
@@ -9,17 +11,26 @@ const AddCourse = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const response = await axios.post("/api/courses", {
-        title,
-        description,
-      });
-      console.log("Course added:", response.data);
+      const token = localStorage.getItem("token"); // ✅ Retrieve token from localStorage
+
+      const response = await axios.post(
+        "/api/courses",
+        { title, description },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // ✅ Include token in header
+          },
+        }
+      );
+
       alert("Course added successfully!");
-      navigate("/courses"); // Redirect to course list after adding
+      console.log("Course response:", response.data);
+      navigate("/courses"); // 👈 redirect to course list
     } catch (error) {
       console.error("Error adding course:", error);
-      alert("Failed to add course. Please try again.");
+      alert("Failed to add course. Make sure you're logged in with correct role.");
     }
   };
 
