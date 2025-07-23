@@ -4,7 +4,9 @@ import "./CourseList.css";
 
 const CourseList = () => {
   const [courses, setCourses] = useState([]);
-  const [enrolledCourses, setEnrolledCourses] = useState([]); // ✅ Needed to track enrolled courses
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(true);
+  const [loadingEnrolled, setLoadingEnrolled] = useState(true);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -14,6 +16,8 @@ const CourseList = () => {
         setCourses(response.data);
       } catch (error) {
         console.error("Error fetching courses:", error);
+      } finally {
+        setLoadingCourses(false);
       }
     };
 
@@ -25,9 +29,11 @@ const CourseList = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setEnrolledCourses(response.data); // ✅ This is a List of enrolled course IDs
+        setEnrolledCourses(response.data);
       } catch (error) {
         console.error("Error fetching enrolled courses:", error);
+      } finally {
+        setLoadingEnrolled(false);
       }
     };
 
@@ -47,7 +53,7 @@ const CourseList = () => {
 
       alert("✅ Enrolled successfully!");
       console.log("Enrollment response:", response.data);
-      setEnrolledCourses([...enrolledCourses, courseId]); // update the enrolled list
+      setEnrolledCourses([...enrolledCourses, courseId]);
     } catch (error) {
       console.error("❌ Error enrolling in course:", error);
       alert("❌ Failed to enroll. Make sure you're logged in as STUDENT.");
@@ -58,7 +64,9 @@ const CourseList = () => {
     <div className="course-list-container">
       <h2>Available Courses</h2>
 
-      {courses.length === 0 ? (
+      {loadingCourses ? (
+        <p>⏳ Loading courses...</p>
+      ) : courses.length === 0 ? (
         <p>No courses available.</p>
       ) : (
         <ul className="course-list">
@@ -78,6 +86,33 @@ const CourseList = () => {
             </li>
           ))}
         </ul>
+      )}
+
+      {/* Divider */}
+      {enrolledCourses.length > 0 && <hr style={{ margin: "40px 0" }} />}
+
+      {/* Enrolled Courses Section */}
+      {enrolledCourses.length > 0 && (
+        <div className="enrolled-courses-section">
+          <h2>Enrolled Courses</h2>
+          {loadingEnrolled ? (
+            <p>⏳ Loading enrolled courses...</p>
+          ) : (
+            <ul className="course-list">
+              {courses
+                .filter((course) => enrolledCourses.includes(course.id))
+                .map((course) => (
+                  <li key={course.id} className="course-item">
+                    <h3>{course.title}</h3>
+                    <p>{course.description}</p>
+                    <small>
+                      <strong>Instructor:</strong> {course.instructorName}
+                    </small>
+                  </li>
+                ))}
+            </ul>
+          )}
+        </div>
       )}
     </div>
   );
