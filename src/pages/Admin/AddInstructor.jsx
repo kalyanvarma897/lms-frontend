@@ -1,5 +1,5 @@
 import React from "react";
-import axios from "../api/axios";
+import axios from "../../api/axios";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 

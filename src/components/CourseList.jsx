@@ -8,11 +8,13 @@ const CourseList = () => {
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [loadingEnrolled, setLoadingEnrolled] = useState(true);
 
+  const role = localStorage.getItem("role");
+
+  // Fetch all courses and enrolled ones
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const response = await axios.get("/api/courses");
-        console.log("Courses fetched:", response.data);
         setCourses(response.data);
       } catch (error) {
         console.error("Error fetching courses:", error);
@@ -23,7 +25,7 @@ const CourseList = () => {
 
     const fetchEnrollmentCourses = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token"); // ✅ moved here
         const response = await axios.get("/api/enroll/my-courses", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -41,22 +43,48 @@ const CourseList = () => {
     fetchEnrollmentCourses();
   }, []);
 
+  // Enroll student in course
   const handleEnroll = async (courseId) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token"); // ✅ moved here
 
-      const response = await axios.post(`/api/enroll/${courseId}`, {}, {
+      await axios.post(
+        `/api/enroll/${courseId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("✅ Enrolled successfully!");
+      setEnrolledCourses([...enrolledCourses, courseId]);
+    } catch (error) {
+      console.error("❌ Error enrolling in course:", error);
+      alert("❌ Failed to enroll. Make sure you're logged in as STUDENT.");
+    }
+  };
+
+  // Delete course (admin/instructor)
+  const handleDelete = async (courseId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this course?");
+    if (!confirmDelete) return;
+
+    try {
+      const token = localStorage.getItem("token"); // ✅ moved here
+
+      await axios.delete(`/api/courses/${courseId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      alert("✅ Enrolled successfully!");
-      console.log("Enrollment response:", response.data);
-      setEnrolledCourses([...enrolledCourses, courseId]);
+      setCourses(courses.filter((course) => course.id !== courseId));
+      alert("Course deleted successfully!");
     } catch (error) {
-      console.error("❌ Error enrolling in course:", error);
-      alert("❌ Failed to enroll. Make sure you're logged in as STUDENT.");
+      console.error("Error deleting course:", error);
+      alert("Failed to delete course. Please try again.");
     }
   };
 
@@ -78,10 +106,32 @@ const CourseList = () => {
                 <strong>Instructor:</strong> {course.instructorName}
               </small>
               <br />
-              {enrolledCourses.includes(course.id) ? (
-                <button disabled>✔ Enrolled</button>
-              ) : (
-                <button onClick={() => handleEnroll(course.id)}>Enroll</button>
+
+              {/* 🧑‍🎓 Student: Enroll */}
+              {role === "STUDENT" ? (
+                enrolledCourses.includes(course.id) ? (
+                  <button disabled>✔ Enrolled</button>
+                ) : (
+                  <button onClick={() => handleEnroll(course.id)}>Enroll</button>
+                )
+              ) : null}
+
+              {/* 🗑️ Admin/Instructor: Delete */}
+              {(role === "ADMIN" || role === "INSTRUCTOR") && (
+                <button
+                  onClick={() => handleDelete(course.id)}
+                  style={{
+                    marginLeft: "10px",
+                    backgroundColor: "#ff4d4d",
+                    color: "white",
+                    border: "none",
+                    padding: "5px 10px",
+                    cursor: "pointer",
+                    borderRadius: "5px",
+                  }}
+                >
+                  ❌ Delete
+                </button>
               )}
             </li>
           ))}

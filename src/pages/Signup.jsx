@@ -78,12 +78,12 @@ const Signup = () => {
             <div className="error">{formik.errors.password}</div>
           )}
         </div>
-        <div>
+        {/* <div>
           <label>Role</label>
           <select name="role" value="STUDENT" disabled>
             <option value="STUDENT">Student</option>
           </select>
-        </div>
+        </div> */}
         <button type="submit">Sign Up</button>
         <p>Already have an account? <Link to="/login">Login</Link></p>
       </form>

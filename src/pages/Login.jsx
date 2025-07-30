@@ -4,7 +4,8 @@ import axios from "../api/axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Formik } from "formik";
 import * as Yup from "yup";
-import "./error.css"; // CSS class for error styling
+import "./error.css";
+
 
 const Login = () => {
   const navigate = useNavigate();
@@ -35,9 +36,12 @@ const Login = () => {
       alert("Login successful!");
 
       if (role === "ADMIN") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/dashboard");
+        navigate("/admin");
+      } else if (role === "INSTRUCTOR") {
+        navigate("/instructor");
+      }
+      else {
+        navigate("/student");
       }
     } catch (error) {
       console.error("Login error:", error.response?.data || error.message);
@@ -46,6 +50,7 @@ const Login = () => {
       setSubmitting(false);
     }
   };
+  
 
   return (
     <div className="form-container">
@@ -99,6 +104,7 @@ const Login = () => {
             <button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Logging in..." : "Login"}
             </button>
+            
           </form>
         )}
       </Formik>
